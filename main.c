@@ -1,3 +1,4 @@
+
 #include "raylib.h"
 #include <stdlib.h>
 #include <string.h>
@@ -28,10 +29,12 @@ int main(void)
     int posicao_x_rect = 798;
     int numero = 0;
     int contador = 0;
+    int contador_frames = 0;
+    int contador_frames_passaro = 0;
 
-    int posy = 120;
+    /*int posy = 120;
     int altura = 30;
-    int largura = 80;
+    int largura = 80;*/
 
     dificuldade* dificuldade_1 = malloc(sizeof(dificuldade));
     dificuldade* dificuldade_2 = malloc(sizeof(dificuldade));
@@ -45,8 +48,9 @@ int main(void)
         return 0;
     }
 
-    inimigos inimigo_1;
-    inimigos inimigo_2;
+    inimigos inimigo_1;//cacto
+    inimigos inimigo_2;//passaro
+    inimigos inimigo_3;//big_cacto
 
 
 
@@ -60,10 +64,10 @@ int main(void)
     inimigo_2.largura = 50;
     inimigo_2.id = 1;
 
-   
-    
-
-    
+    inimigo_3.posy = 120;
+    inimigo_3.altura = 70;
+    inimigo_3.largura = 40;
+    inimigo_3.id = 2;
 
     dificuldade_1->qtd_decrescimo = 2;
     dificuldade_1->max_loops = 3;
@@ -83,12 +87,36 @@ int main(void)
    
     
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
-    Texture2D dinossauro = LoadTexture("C:/Users/Twobr/Downloads/dinossauro_1.png");
     SetTargetFPS(60);
+
     dificuldade* atual = dificuldade_1;
+    Texture2D dinossauro = LoadTexture("C:/Users/Twobr/Downloads/dinossauro_1.png");
+    Texture2D dinossauro_esq = LoadTexture("C:/Users/Twobr/Downloads/dinossauro_esq.png");
+    Texture2D dinossauro_dir = LoadTexture("C:/Users/Twobr/Downloads/dinossauro_dir.png");
+    Texture2D atual_textura=dinossauro;
+
+    Texture2D cacto = LoadTexture("C:/Users/Twobr/Downloads/cacto-Photoroom.png");
+    Texture2D big_cacto = LoadTexture("C:/Users/Twobr/Downloads/big_cacto-Photoroom.png");
+    Texture2D passaro_down = LoadTexture("C:/Users/Twobr/Downloads/passaro_down-Photoroom.png");
+    Texture2D passaro_up = LoadTexture("C:/Users/Twobr/Downloads/passaro_up-Photoroom.png");
+    
+
+    inimigo_1.textura_inimigo = cacto;
+    inimigo_2.textura_inimigo = passaro_up;
+    inimigo_3.textura_inimigo = big_cacto;
+    inimigos inimigo_atual = inimigo_1;
     while (!WindowShouldClose())
-    {   
-        
+    {
+
+        if (contador_frames <= 16) {
+            atual_textura = dinossauro_dir;
+        }
+        else if (contador_frames >= 16 && contador_frames <= 32) {
+            atual_textura = dinossauro_esq;
+        }
+        else {
+            contador_frames = 0;
+        }
 
         if (contador == atual->max_loops) {
             atual = atual->proximo;
@@ -97,29 +125,41 @@ int main(void)
         if (posicao_x_rect <= atual->tempo_spawn) {
             posicao_x_rect = 800;
             contador++;
-            numero = rand() % 2;
+            numero = rand() % 3;
             if (numero == inimigo_1.id) {
-                posy = inimigo_1.posy;
-                largura = inimigo_1.largura;
-                altura = inimigo_1.altura;
+                inimigo_atual = inimigo_1;
             }
 
             else if (numero == inimigo_2.id) {
-                posy = inimigo_2.posy;
-                largura = inimigo_2.largura;
-                altura = inimigo_2.altura;
+                inimigo_atual = inimigo_2;
+            }
+            else if (numero == inimigo_3.id) {
+                inimigo_atual = inimigo_3;
+            }
+        }
+
+        if (inimigo_atual.id == 1) {
+            if (contador_frames_passaro<= 16) {
+                inimigo_atual.textura_inimigo= passaro_up;
+            }
+            else if (contador_frames_passaro>= 16 && contador_frames_passaro<= 32) {
+                inimigo_atual.textura_inimigo= passaro_down;
+            }
+            else {
+                contador_frames_passaro= 0;
             }
         }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        DrawRectangle(posicao_x_rect, posy, largura, altura, cor);
-        DrawTexture(dinossauro, 400, 80,WHITE);
+        DrawTexture(inimigo_atual.textura_inimigo,posicao_x_rect,inimigo_atual.posy,WHITE);
+        DrawTexture(atual_textura,400, 80, WHITE);
         posicao_x_rect -= atual->qtd_decrescimo;
         EndDrawing();
+        contador_frames++;
+        contador_frames_passaro++;
     }
     CloseWindow();
-    UnloadTexture(dinossauro);
 
     return 0;
 }
