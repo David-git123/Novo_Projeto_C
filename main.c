@@ -1,7 +1,8 @@
-
 #include "raylib.h"
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
 
 
 typedef struct dificuldade {
@@ -23,6 +24,10 @@ typedef struct inimigos {
 
 int main(void)
 {
+    int matriz[2][2] = { { 1,2 }, { 3, 4 } };
+    int numero_linha;
+    int numero_coluna;
+    srand(time(NULL));
     Color cor = BLACK;
     const int screenWidth = 800;
     const int screenHeight = 450;
@@ -31,6 +36,9 @@ int main(void)
     int contador = 0;
     int contador_frames = 0;
     int contador_frames_passaro = 0;
+    int posicao_y_estrela = 50;
+    int posicao_x_estrela = 798;
+   
 
     /*int posy = 120;
     int altura = 30;
@@ -90,15 +98,15 @@ int main(void)
     SetTargetFPS(60);
 
     dificuldade* atual = dificuldade_1;
-    Texture2D dinossauro = LoadTexture("C:/Users/Twobr/Downloads/dinossauro_1.png");
-    Texture2D dinossauro_esq = LoadTexture("C:/Users/Twobr/Downloads/dinossauro_esq.png");
-    Texture2D dinossauro_dir = LoadTexture("C:/Users/Twobr/Downloads/dinossauro_dir.png");
+    Texture2D dinossauro = LoadTexture("resources/dinossauro_parado.png");
+    Texture2D dinossauro_esq = LoadTexture("resources/dinossauro_em_pe_1.png");
+    Texture2D dinossauro_dir = LoadTexture("resources/dinossauro_em_pe_2.png");
     Texture2D atual_textura=dinossauro;
 
-    Texture2D cacto = LoadTexture("C:/Users/Twobr/Downloads/cacto-Photoroom.png");
-    Texture2D big_cacto = LoadTexture("C:/Users/Twobr/Downloads/big_cacto-Photoroom.png");
-    Texture2D passaro_down = LoadTexture("C:/Users/Twobr/Downloads/passaro_down-Photoroom.png");
-    Texture2D passaro_up = LoadTexture("C:/Users/Twobr/Downloads/passaro_up-Photoroom.png");
+    Texture2D cacto = LoadTexture("resources/cacto2.png");
+    Texture2D big_cacto = LoadTexture("resources/cacto1.png");
+    Texture2D passaro_down = LoadTexture("resources/passaro1.png");
+    Texture2D passaro_up = LoadTexture("resources/passaro2.png");
     
 
     inimigo_1.textura_inimigo = cacto;
@@ -149,11 +157,40 @@ int main(void)
                 contador_frames_passaro= 0;
             }
         }
+        
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
+
+                // Retangulos de colisão, precisa usar o x e y e o witdh e height
+    Rectangle retangulo_dino = {400, 80, (float)atual_textura.width, (float)atual_textura.height};
+    
+    Rectangle retangulo_inimigo = {
+    posicao_x_rect,
+    inimigo_atual.posy,
+    (float)inimigo_atual.textura_inimigo.width,
+    (float)inimigo_atual.textura_inimigo.height
+};
+
+                // Colisão
+        bool colidiu = CheckCollisionRecs(retangulo_dino, retangulo_inimigo);
+
+
+                // desenhar na tela o inimigo
         DrawTexture(inimigo_atual.textura_inimigo,posicao_x_rect,inimigo_atual.posy,WHITE);
+                // desenhar na tela o dinossauro
         DrawTexture(atual_textura,400, 80, WHITE);
+
+                // Outlines
+        DrawRectangleLinesEx(retangulo_dino, 1, BLUE); // O 1 é quanto forte é a linha
+        DrawRectangleLinesEx(retangulo_inimigo, 1, RED);
+
+            // O que ocorre ao colidir
+                if (colidiu) {
+            DrawText("COLISAO!", 10, 10, 20, RED);
+        }
+
+
         posicao_x_rect -= atual->qtd_decrescimo;
         EndDrawing();
         contador_frames++;
