@@ -24,12 +24,6 @@ typedef struct Inimigo1 {
     float tempoParaRespawn;
 } Inimigo1;
 
-typedef struct Player2 {
-    Vector2 position;
-    int speed;
-    bool canJump;
-} Player2;
-
 Inimigo1 inimigos[50];
 
 // Função para ler o arquivo de high score
@@ -231,7 +225,7 @@ int main(void) {
         bool colidiu = false;
         for (int i = 0; i < 50; i++) {
             if (inimigos[i].ativo) {
-                // checar colião com fução raylib
+                // checar colisão com fução raylib, que precisa desses dados
                 if (CheckCollisionCircleRec(inimigos[i].position, inimigos[i].raio, playerRect)) {
                     colidiu = true;
                     break;
