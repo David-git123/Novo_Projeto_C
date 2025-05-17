@@ -1,265 +1,125 @@
 #include "raylib.h"
-#include <math.h>
-#include "rlgl.h"
-#include "raymath.h"
 #include <stdlib.h>
-#include <stdio.h>
-// Structs
-
-// delta é o tempo entre os frames
-
-typedef struct Player1 {
-    Vector2 position;
-    int speed;
-    bool canJump;
-    bool canDuck;
-} Player1;
-
-typedef struct Inimigo1 {
-    Vector2 position;
-    int speed;
-    float raio;
-    Color cor;
-    bool ativo;
-    float tempoParaRespawn;
-} Inimigo1;
-
-Inimigo1 inimigos[50];
-
-// Função para ler o arquivo de high score
-int lerarquivo() {
-    int highScore = 0;
-    FILE* arquivo = fopen("high_score.txt", "r");
-    
-    if (arquivo != NULL) {
-        fscanf(arquivo, "%d", &highScore);
-        fclose(arquivo);
-    }
-    
-    return highScore;
-}
-
-// Função para salvar um novo high score
-void salvarHighScore(int score) {
-    int highScore = lerarquivo();
-    
-    // Se o novo score for maior, salva
-    if (score > highScore) {
-        FILE* arquivo = fopen("high_score.txt", "w");
-        if (arquivo != NULL) {
-            fprintf(arquivo, "%d", score);
-            fclose(arquivo);
-        }
-    }
-}
+#include <string.h>
 
 
-// Inicialização dos inimigos
-void InicializarInimigos() {
-    for (int i = 0; i < 50; i++) {
-        inimigos[i].ativo = false;
-        inimigos[i].tempoParaRespawn = GetRandomValue(1, 3);
-    }
-}
+typedef struct dificuldade {
+    int qtd_decrescimo;
+    int max_loops;
+    int tempo_spawn;
+    struct dificuldade* proximo;
+}dificuldade;
 
-// Função para obter a velocidade baseada no tempo decorrido
-int ObterVelocidade(float tempo ) {
 
-    if (tempo < 5.0) {
-        return 350;  // Velocidade mais apropriada 
-    } 
-    else if (tempo < 10.0) {
-        return 400;
-    }
-    else if (tempo < 15.0) {
-        return 450;
-    }
-    else if (tempo < 20.0) {
-        return 500;
-    }
-    else if (tempo < 30.0) {
-        return 550;
-    }
-    else {
-        return 600;
-    }
-}
-// Respawn individual
-void RespawnInimigo(int i) {
-    inimigos[i].position = (Vector2){ 800.0f, 391 };
-    inimigos[i].speed = GetRandomValue(100, 200) / 100.0f;
-    inimigos[i].raio = 20;
-    inimigos[i].cor = RED;
-    inimigos[i].ativo = true;
-}
+typedef struct inimigos {
+    int altura;
+    int largura;
+    int posy;
+    Texture2D textura_inimigo;
+    int id;
+}inimigos;
 
-// Atualização dos inimigos
-void AtualizarInimigos(float delta, float tempoJogo) {
 
-    int velocidadeAtual = ObterVelocidade(tempoJogo);
-    for (int i = 0; i < 50; i++) {
-        if (inimigos[i].ativo) {
-            inimigos[i].position.x -= velocidadeAtual * delta;
+int main(void)
+{
+    Color cor = BLACK;
+    const int screenWidth = 800;
+    const int screenHeight = 450;
+    int posicao_x_rect = 798;
+    int numero = 0;
+    int contador = 0;
 
-            if (inimigos[i].position.x + inimigos[i].raio < 0) {
-                inimigos[i].ativo = false;
-                inimigos[i].tempoParaRespawn = 2.0f;
-            }
-        }
-        else {
-            inimigos[i].tempoParaRespawn -= delta;
-            if (inimigos[i].tempoParaRespawn <= 0) {
-                RespawnInimigo(i);
-            }
-        }
-    }
-}
+    int posy = 120;
+    int altura = 30;
+    int largura = 80;
 
-// Desenho dos inimigos
-void DesenharInimigos() {
-    for (int i = 0; i < 50; i++) {
-        if (inimigos[i].ativo) {
-            DrawCircleV(inimigos[i].position, inimigos[i].raio, inimigos[i].cor);
-        }
-    }
-}
+    dificuldade* dificuldade_1 = malloc(sizeof(dificuldade));
+    dificuldade* dificuldade_2 = malloc(sizeof(dificuldade));
+    dificuldade* dificuldade_3 = malloc(sizeof(dificuldade));
 
-// Main
-int main(void) {
-    const int screenWidth = 1600;
-    const int screenHeight = 850;
-
-    InitWindow(screenWidth, screenHeight, "raylib - player com pulo");
-
-    // Inicializa player
-    Player1 player = { 0 };
-    player.position = (Vector2){ 23, 415 };
-    player.speed = 4;
-    player.canJump = true;
-    player.canDuck = true;
-
-    // Variáveis de física
-    float gravity = 0.5f;
-    float jumpForce = -10.0f;
-    float velocityY = 0;
-    float groundY = 415.0f;  // altura do chão (base do player)
-
-    // Variáveis de pontuação
-    int score = 0;
-    float scoreTimer = 0.0f;  // Temporizador para incrementar a pontuação a cada segundo
-    int highScore = lerarquivo();  // Ler o high score salvo
-
-    // Variáveis para controlar o tempo de jogo
-    float tempoJogo = 0.0f;
-
-    InicializarInimigos();
-
-    SetTargetFPS(60);
-
-    while (!WindowShouldClose()) {
-        float delta = GetFrameTime();
-        bool isDucking = false;
-
-        // Atualiza o tempo de jogo
-        tempoJogo += delta;
-    
-
-        // Atualiza o temporizador de pontuação
-        scoreTimer += delta;
-        
-        // Incrementa a pontuação a cada segundo
-        if (scoreTimer >= 1.0f) {
-            score++;
-            scoreTimer -= 1.0f;  // Subtrai 1 segundo em vez de zerar, para não perder o tempo fracionário
-        }
-
-        AtualizarInimigos(delta, tempoJogo);
-
-        if (IsKeyDown(KEY_DOWN) && player.canDuck) {
-            isDucking = true;
-        }
-        else {
-            isDucking = false;
-        }
-
-        // Gravidade
-        velocityY += gravity;
-
-        // Pulo com seta para cima
-        if (IsKeyPressed(KEY_UP) && player.canJump) {
-            velocityY = jumpForce;
-            player.canJump = false;
-        }
-
-        // Aplica movimento vertical
-        player.position.y += velocityY;
-
-        // Verifica chão
-        if (player.position.y >= groundY) {
-            player.position.y = groundY;
-            velocityY = 0;
-            player.canJump = true;
-            player.canDuck = true;
-        }
-
-        // Desenho
+    if (dificuldade_1 == NULL || dificuldade_2 == NULL || dificuldade_3 == NULL) {
+        InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
         BeginDrawing();
         ClearBackground(RAYWHITE);
+        EndDrawing();
+        return 0;
+    }
 
-        DesenharInimigos();
+    inimigos inimigo_1;
+    inimigos inimigo_2;
 
-        DrawLine(0, screenHeight / 2, screenWidth, screenHeight / 2, DARKGRAY);
-        // Desenha player como retângulo
-        float currentHeight;
-        if (isDucking == true) {
-            currentHeight = 20;
+
+
+    inimigo_1.posy = 120;
+    inimigo_1.altura = 30;
+    inimigo_1.largura = 80;
+    inimigo_1.id = 0;
+
+    inimigo_2.posy = 50;
+    inimigo_2.altura = 20;
+    inimigo_2.largura = 50;
+    inimigo_2.id = 1;
+
+   
+    
+
+    
+
+    dificuldade_1->qtd_decrescimo = 2;
+    dificuldade_1->max_loops = 3;
+    dificuldade_1->tempo_spawn = -400;
+    dificuldade_1->proximo = dificuldade_2;
+
+    dificuldade_2->qtd_decrescimo = 6;
+    dificuldade_2->max_loops = 8;
+    dificuldade_2->tempo_spawn = -300;
+    dificuldade_2->proximo = dificuldade_3;
+
+    dificuldade_3->qtd_decrescimo = 20;
+    dificuldade_3->max_loops = 500;
+    dificuldade_3->tempo_spawn = -200;
+    dificuldade_3->proximo = NULL;
+
+   
+    
+    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    Texture2D dinossauro = LoadTexture("C:/Users/Twobr/Downloads/dinossauro_1.png");
+    SetTargetFPS(60);
+    dificuldade* atual = dificuldade_1;
+    while (!WindowShouldClose())
+    {   
+        
+
+        if (contador == atual->max_loops) {
+            atual = atual->proximo;
         }
-        else {
-            currentHeight = 40;
-        }
 
-        Rectangle playerRect = { player.position.x - 20, player.position.y - currentHeight, 40.0f, currentHeight };
-        DrawRectangleRec(playerRect, RED);
+        if (posicao_x_rect <= atual->tempo_spawn) {
+            posicao_x_rect = 800;
+            contador++;
+            numero = rand() % 2;
+            if (numero == inimigo_1.id) {
+                posy = inimigo_1.posy;
+                largura = inimigo_1.largura;
+                altura = inimigo_1.altura;
+            }
 
-
-        bool colidiu = false;
-        for (int i = 0; i < 50; i++) {
-            if (inimigos[i].ativo) {
-                // checar colisão com fução raylib, que precisa desses dados
-                if (CheckCollisionCircleRec(inimigos[i].position, inimigos[i].raio, playerRect)) {
-                    colidiu = true;
-                    break;
-                }
+            else if (numero == inimigo_2.id) {
+                posy = inimigo_2.posy;
+                largura = inimigo_2.largura;
+                altura = inimigo_2.altura;
             }
         }
 
-        // Se colidiu, salva o high score e reinicia o jogo
-        if (colidiu) {
-            salvarHighScore(score);
-            highScore = lerarquivo();  
-            score = 0;               
-            scoreTimer = 0.0f;
-            tempoJogo = 0.0f;        
-            
-            // Reinicia os inimigos
-            for (int i = 0; i < 50; i++) {
-                inimigos[i].ativo = false;
-                inimigos[i].tempoParaRespawn = GetRandomValue(1, 3);
-            }
-        }
-
-        // Desenha posição do mouse
-        Vector2 mousePos = GetMousePosition();
-        DrawCircleV(mousePos, 5, RED);
-        DrawText(TextFormat("Mouse: [%.0f, %.0f]", mousePos.x, mousePos.y), 10, 10, 20, DARKGRAY);
-
-        // Desenha a pontuação atual e o high score
-        DrawText(TextFormat("Score: %d", score), 10, 50, 30, BLACK);
-        DrawText(TextFormat("High Score: %d", highScore), 10, 90, 20, DARKGRAY);
-
-
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+        DrawRectangle(posicao_x_rect, posy, largura, altura, cor);
+        DrawTexture(dinossauro, 400, 80,WHITE);
+        posicao_x_rect -= atual->qtd_decrescimo;
         EndDrawing();
     }
-    salvarHighScore(score);
     CloseWindow();
-    return 0;}
+    UnloadTexture(dinossauro);
+
+    return 0;
+}
