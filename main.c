@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -22,6 +23,33 @@ typedef struct inimigos {
 }inimigos;
 
 
+// Função para ler o arquivo de high score
+int lerarquivo() {
+    int highScore = 0;
+    FILE* arquivo = fopen("high_score.txt", "r");
+    
+    if (arquivo != NULL) {
+        fscanf(arquivo, "%d", &highScore);
+        fclose(arquivo);
+    }
+    
+    return highScore;
+}
+
+// Função para salvar um novo high score
+void salvarHighScore(int score) {
+    int highScore = lerarquivo();
+    
+    // Se o novo score for maior, salva
+    if (score > highScore) {
+        FILE* arquivo = fopen("high_score.txt", "w");
+        if (arquivo != NULL) {
+            fprintf(arquivo, "%d", score);
+            fclose(arquivo);
+        }
+    }
+}
+
 int main(void)
 {
     int matriz[2][2] = { { 1,2 }, { 3, 4 } };
@@ -36,10 +64,11 @@ int main(void)
     int contador = 0;
     int contador_frames = 0;
     int contador_frames_passaro = 0;
+    int pontuacao = 0;
+    int frame_contador_pontuacao = 0;
     int posicao_y_estrela = 50;
     int posicao_x_estrela = 798;
    
-
     /*int posy = 120;
     int altura = 30;
     int largura = 80;*/
@@ -95,7 +124,7 @@ int main(void)
    
     
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
-    SetTargetFPS(60);
+    SetTargetFPS(60); //60 frames por segundo
 
     dificuldade* atual = dificuldade_1;
     Texture2D dinossauro = LoadTexture("resources/dinossauro_parado.png");
@@ -113,9 +142,31 @@ int main(void)
     inimigo_2.textura_inimigo = passaro_up;
     inimigo_3.textura_inimigo = big_cacto;
     inimigos inimigo_atual = inimigo_1;
+
+
+int highScore = lerarquivo();
+
+while (!WindowShouldClose()) {
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+
+    DrawText("DINO RUN", 300, 100, 40, DARKGRAY);
+    DrawText(TextFormat("RECORD: %d", highScore), 300, 160, 35, GRAY);
+    DrawText("APERTE ENTER", 300, 220, 30, BLACK);
+
+
+    EndDrawing();
+
+    if (IsKeyPressed(KEY_ENTER)) {
+        break; // Sai da tela para iniciar o jogo
+    }
+}
+
+
     while (!WindowShouldClose())
     {
 
+        
         if (contador_frames <= 16) {
             atual_textura = dinossauro_dir;
         }
@@ -185,13 +236,32 @@ int main(void)
         DrawRectangleLinesEx(retangulo_dino, 1, BLUE); // O 1 é quanto forte é a linha
         DrawRectangleLinesEx(retangulo_inimigo, 1, RED);
 
+
+        DrawText(TextFormat("PONTOS: %d", pontuacao), 10, 40, 20, BLACK);
             // O que ocorre ao colidir
-                if (colidiu) {
-            DrawText("COLISAO!", 10, 10, 20, RED);
-        }
+if (colidiu) {
+    DrawText("COLISAO!", 10, 10, 20, RED);
+    salvarHighScore(pontuacao);
+    EndDrawing();
+    WaitTime(1.0);
+    CloseWindow();
+    main();  // reinicia o jogo do zero
+    return 0;
+}
 
 
         posicao_x_rect -= atual->qtd_decrescimo;
+
+
+        //O que ocrre ao não colidir
+        if (!colidiu) {
+        frame_contador_pontuacao++; 
+        if (frame_contador_pontuacao >= 60) {
+        pontuacao++;
+        frame_contador_pontuacao = 0;
+    }
+}
+
         EndDrawing();
         contador_frames++;
         contador_frames_passaro++;
