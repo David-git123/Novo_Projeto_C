@@ -75,7 +75,7 @@ int main(void)
     int pontuacao = 0;
     int frame_contador_pontuacao = 0;
 
-    int frame_contador_gelo = 0;
+    int frame_contador_caracol = 0;
     int posicao_x_powerup=0;
     bool powerup_visivel = false;  // powerup começa sem ta visivel
     int frame_powerup_spawn = 0;   // contagem em frames do powerup
@@ -317,9 +317,9 @@ int main(void)
             }
         }
 
-        if (frame_contador_gelo > 0) {
+        if (frame_contador_caracol > 0) {
             posicao_x_rect -= 1;
-            frame_contador_gelo--;
+            frame_contador_caracol--;
         }
         else if (frame_contador_fogo > 0) {
             posicao_x_rect -= atual->qtd_decrescimo + 2;
@@ -402,6 +402,7 @@ int main(void)
         }
         //             // O que ocorre ao colidir
         if (colidiu == true && invencibilidade == false) {
+            DrawText("COLISAO!", 10, 10, 20, RED);
             salvarHighScore(pontuacao);
             EndDrawing();
             WaitTime(1.0);
@@ -418,7 +419,7 @@ int main(void)
                
             }
             else if (powerup_atual.id == 1) {
-                frame_contador_gelo = 360;
+                frame_contador_caracol = 360;
             }
             else if (powerup_atual.id == 2) {
                 frame_contador_invencibilidade = 360;
