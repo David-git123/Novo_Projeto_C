@@ -7,7 +7,7 @@
 
 
 typedef struct dificuldade {
-    int qtd_decrescimo;// Velocidade que os obstaculos passam na tela no eixo x
+    int velocidade_x;// Velocidade que os obstaculos passam na tela no eixo x
     int max_loops;// Maximo de loops para mudar de dificuldade (1 loop = posicao 800 até a 0)
     int tempo_spawn;// "delay" entre spawm de obstaculos, é um tipo de contador de frames
     struct dificuldade* proximo;
@@ -83,8 +83,8 @@ int main(void)
     bool invencibilidade = false;
     int frame_contador_invencibilidade = 0;
 
-    int quadrado_x = 400;// posicao x do dinossauro
-    int quadrado_y = 330;// posicao y do dino
+    int posicao_x_dino = 400;
+    int posicao_y_dino = 330;
     int contador_frames_pulo = 0;
     float valor_decrescimo_pulo = 2.5;
     bool pode_pular = true;
@@ -125,27 +125,27 @@ int main(void)
     inimigo_3.largura = 40;
     inimigo_3.id = 2;
 
-    dificuldade_1->qtd_decrescimo = 3; // a quantidade de x que ele se move
+    dificuldade_1->velocidade_x = 3; // a quantidade de x que ele se move
     dificuldade_1->max_loops = 2;
     dificuldade_1->tempo_spawn = -400;
     dificuldade_1->proximo = dificuldade_2;
 
-    dificuldade_2->qtd_decrescimo = 5;
+    dificuldade_2->velocidade_x = 5;
     dificuldade_2->max_loops = 8;
     dificuldade_2->tempo_spawn = -300;
     dificuldade_2->proximo = dificuldade_3;
 
-    dificuldade_3->qtd_decrescimo = 8;
+    dificuldade_3->velocidade_x = 8;
     dificuldade_3->max_loops = 20;
     dificuldade_3->tempo_spawn = -200;
     dificuldade_3->proximo = dificuldade_4;
 
-    dificuldade_4->qtd_decrescimo = 10;
+    dificuldade_4->velocidade_x = 10;
     dificuldade_4->max_loops = 30;
     dificuldade_4->tempo_spawn = -200;
     dificuldade_4->proximo = dificuldade_5;
 
-    dificuldade_5->qtd_decrescimo = 15;
+    dificuldade_5->velocidade_x = 15;
     dificuldade_5->max_loops = 40;
     dificuldade_5->tempo_spawn = -100;
     dificuldade_5->proximo == NULL;
@@ -251,7 +251,7 @@ int main(void)
         //IsKeyUp: Verifica se a tecla não está pressionada == !IsKeyDown
 
         if (IsKeyDown(KEY_UP) && contador_frames_pulo < 10 && pode_pular == true) {// contador frames pulo serve para limitar quantidade de frames que terá para pular. Será incrementado enquanto apertar botão
-            quadrado_y -= 20;// vou subir.
+            posicao_y_dino -= 20;// vou subir.
             contador_frames_pulo++;
             textura_dino_atual = dinossauro_parado;
         }
@@ -259,10 +259,10 @@ int main(void)
             pode_pular = false;// Pode pular so vai ser false enquanto ele estiver caindo
         }
         if (pode_pular == false) {
-            quadrado_y += valor_decrescimo_pulo;// começa a cair.
+            posicao_y_dino += valor_decrescimo_pulo;// começa a cair.
             if (IsKeyUp(KEY_DOWN)) {// para saber se não clicou no botão de cair, se cair vai imediatamente para baixo.
-                if (quadrado_y >= 330) {// para saber se aterrisou
-                    quadrado_y = 330;
+                if (posicao_y_dino >= 330) {// para saber se aterrisou
+                    posicao_y_dino = 330;
                     contador_frames_pulo = 0;
                     pode_pular = true;
                 }
@@ -272,16 +272,16 @@ int main(void)
         // carregamento de texturas e se abaixar.
         if (IsKeyDown(KEY_DOWN) && contador_frames <= 16) {// 16 frames iniciais ele passa com perna direita levantada. Aqui ele está abaixado
             textura_dino_atual = dinossauro_down_dir;
-            quadrado_y = 360;// diminuir a altura quando abaixo
+            posicao_y_dino = 360;// diminuir a altura quando abaixo
         }
         else if (IsKeyDown(KEY_DOWN) && contador_frames >= 16 && contador_frames <= 32) {// 16 seguintes com a perna esquerda. aqui está abaixado
             textura_dino_atual = dinossauro_down_esq;
-            quadrado_y = 360;
+            posicao_y_dino = 360;
         }
-        else if (contador_frames <= 16 && quadrado_y == 330) { //Quando está em pé
+        else if (contador_frames <= 16 && posicao_y_dino == 330) { //Quando está em pé
             textura_dino_atual = dinossauro_dir;
         }
-        else if (contador_frames >= 16 && contador_frames <= 32 && quadrado_y == 330) {// Quando está em pé
+        else if (contador_frames >= 16 && contador_frames <= 32 && posicao_y_dino == 330) {// Quando está em pé
             textura_dino_atual = dinossauro_esq;
         }
         else {// Resetar quando contador de frames for maior que 32.
@@ -289,7 +289,7 @@ int main(void)
         }
 
         if (IsKeyReleased(KEY_DOWN)) {
-            quadrado_y = 330;
+            posicao_y_dino = 330;
         }
 
         // Logica do spawn do powerup
@@ -324,11 +324,11 @@ int main(void)
             frame_contador_caracol--; // tempo de duração até o power up acabar (6 segundos)
         }
         else if (frame_contador_fogo > 0) {
-            posicao_x_inimigo -= atual->qtd_decrescimo + 2; //aumento da velocidade atual do inimigo
+            posicao_x_inimigo -= atual->velocidade_x + 2; //aumento da velocidade atual do inimigo
             frame_contador_fogo--;//tempo de duração até o power up acabar (6 segundos)
         }
         else {
-            posicao_x_inimigo -= atual->qtd_decrescimo; // deslocamento x original do inimigo 
+            posicao_x_inimigo -= atual->velocidade_x; // deslocamento x original do inimigo 
         }
 
 
@@ -340,8 +340,8 @@ int main(void)
             invencibilidade = false;
         }
 
-        cenario_1_x -= dificuldade_1->qtd_decrescimo; // mover o cenário baseado na velocida atual
-        cenario_2_x -= dificuldade_1->qtd_decrescimo; // mover o cenário baseado na velocida atual
+        cenario_1_x -= dificuldade_1->velocidade_x; // mover o cenário baseado na velocida atual
+        cenario_2_x -= dificuldade_1->velocidade_x; // mover o cenário baseado na velocida atual
 
 
         BeginDrawing();
@@ -352,8 +352,8 @@ int main(void)
         DrawTexture(cenario_2, cenario_2_x, 0, WHITE);
 
         Rectangle retangulo_dino = { // cria a hitbox de cada item
-            quadrado_x, // posição atual
-            quadrado_y, // posição atual
+            posicao_x_dino, // posição atual
+            posicao_y_dino, // posição atual
             (float)textura_dino_atual.width, // largura da hitbox
             (float)textura_dino_atual.height // altura da hitbox
     };
@@ -380,9 +380,8 @@ int main(void)
 
         // desenhar os objetos
         DrawTexture(inimigo_atual.textura_inimigo, posicao_x_inimigo, inimigo_atual.posy, WHITE);// Draw texture desenha o PNG que está na variavel. Quarto paramentro muda cor da textura
-        DrawTexture(textura_dino_atual, quadrado_x, quadrado_y, WHITE);// Quadrado x é constate, posição x do dino. quadrado y muda, posição y do dino
+        DrawTexture(textura_dino_atual, posicao_x_dino, posicao_y_dino, WHITE);// Quadrado x é constate, posição x do dino. quadrado y muda, posição y do dino
 
-        // Outlines
 
 
         if (powerup_visivel == true) { // so começa o e mantém o desenho até ocorrer uma colisão OU ele sair da tela
