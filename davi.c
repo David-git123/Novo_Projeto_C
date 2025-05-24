@@ -125,7 +125,7 @@ int main(void)
     inimigo_3.largura = 40;
     inimigo_3.id = 2;
 
-    dificuldade_1->qtd_decrescimo = 3;
+    dificuldade_1->qtd_decrescimo = 3; // a quantidade de x que ele se move
     dificuldade_1->max_loops = 2;
     dificuldade_1->tempo_spawn = -400;
     dificuldade_1->proximo = dificuldade_2;
@@ -293,20 +293,20 @@ int main(void)
         }
 
         // Logica do spawn do powerup
-        if (frame_powerup_spawn >= 300 && powerup_visivel == false) {
-            int m[2][2] = { {0, 1}, {2, 3} };
+        if (frame_powerup_spawn >= 300 && powerup_visivel == false) {// espera 6 segundos antes de o power up spawnar
+            int m[2][2] = { {0, 1}, {2, 3} }; //matriz para sortear o power up baseado no id
             int linha = rand() % 2;
             int coluna = rand() % 2;
             int tipo = m[linha][coluna];  //so faz o sorteio uma vez,  todo o momento em que ele aprecer.
 
-            powerup_atual.textura_powerup = powerups_texturas[tipo];
-            powerup_atual.id = tipo;
+            powerup_atual.textura_powerup = powerups_texturas[tipo]; 
+            powerup_atual.id = tipo; // escolhe o tipo do power up
             powerup_atual.posy = 270;
             powerup_atual.altura = 50;
             powerup_atual.largura = 50;
 
-            posicao_x_powerup = 800;
-            powerup_visivel = true;
+            posicao_x_powerup = 800; //posição de spawn
+            powerup_visivel = true; //so ativa quando o power up for visível
         }
 
 
@@ -315,47 +315,48 @@ int main(void)
             posicao_x_powerup -= 2;
             if (posicao_x_powerup < 0) {
                 powerup_visivel = false; // Esconde powerup após sair da tela
-                frame_powerup_spawn = 0;
+                frame_powerup_spawn = 0; // zera o tempo de spawn até o power up sair da tela para evitar que ele dê spwan enquanto tiver outro power up na tela 
             }
         }
 
         if (frame_contador_caracol > 0) {
-            posicao_x_inimigo -= 1;
-            frame_contador_caracol--;
+            posicao_x_inimigo -= 1; // torna a movimentação x dele vai diminuir apenas por -1 x 
+            frame_contador_caracol--; // tempo de duração até o power up acabar (6 segundos)
         }
         else if (frame_contador_fogo > 0) {
-            posicao_x_inimigo -= atual->qtd_decrescimo + 2;
-            frame_contador_fogo--;
+            posicao_x_inimigo -= atual->qtd_decrescimo + 2; //aumento da velocidade atual do inimigo
+            frame_contador_fogo--;//tempo de duração até o power up acabar (6 segundos)
         }
         else {
-            posicao_x_inimigo -= atual->qtd_decrescimo;
+            posicao_x_inimigo -= atual->qtd_decrescimo; // deslocamento x original do inimigo 
         }
 
 
         if (frame_contador_invencibilidade > 0) {
-            invencibilidade = true;
+            invencibilidade = true; // só detecta a colisão se a invencibilidade == false
             frame_contador_invencibilidade--;
         }
         else {
             invencibilidade = false;
         }
 
-        cenario_1_x -= dificuldade_1->qtd_decrescimo;
-        cenario_2_x -= dificuldade_1->qtd_decrescimo;
+        cenario_1_x -= dificuldade_1->qtd_decrescimo; // mover o cenário baseado na velocida atual
+        cenario_2_x -= dificuldade_1->qtd_decrescimo; // mover o cenário baseado na velocida atual
 
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        if (cenario_1_x <= -800) cenario_1_x = 800;
+        if (cenario_1_x <= -800) cenario_1_x = 800; 
         if (cenario_2_x <= -800) cenario_2_x = 800;
         DrawTexture(cenario_1, cenario_1_x, 0, WHITE);
         DrawTexture(cenario_2, cenario_2_x, 0, WHITE);
 
-        Rectangle retangulo_dino = {
-            quadrado_x,
-            quadrado_y,
-            (float)textura_dino_atual.width,
-            (float)textura_dino_atual.height };
+        Rectangle retangulo_dino = { // cria a hitbox de cada item
+            quadrado_x, // posição atual
+            quadrado_y, // posição atual
+            (float)textura_dino_atual.width, // largura da hitbox
+            (float)textura_dino_atual.height // altura da hitbox
+    };
 
         Rectangle retangulo_inimigo = {
             posicao_x_inimigo,
@@ -372,10 +373,10 @@ int main(void)
             (float)powerup_atual.altura
         };
         // Colisão com powerup
-        bool ColidiuPowerup = CheckCollisionRecs(retangulo_dino, retangulo_powerup);
+        bool ColidiuPowerup = CheckCollisionRecs(retangulo_dino, retangulo_powerup); // Função do Raylib que pega 2 retângulos e checa se os retângulos parâmetros se colidiram 
 
         // Colisão com inimigo
-        bool colidiu = CheckCollisionRecs(retangulo_dino, retangulo_inimigo);
+        bool colidiu = CheckCollisionRecs(retangulo_dino, retangulo_inimigo); // Função do Raylib que pega 2 retângulos e checa se os retângulos parâmetros se colidiram 
 
         // desenhar os objetos
         DrawTexture(inimigo_atual.textura_inimigo, posicao_x_inimigo, inimigo_atual.posy, WHITE);// Draw texture desenha o PNG que está na variavel. Quarto paramentro muda cor da textura
@@ -384,26 +385,26 @@ int main(void)
         // Outlines
 
 
-        if (powerup_visivel == true) {
+        if (powerup_visivel == true) { // so começa o e mantém o desenho até ocorrer uma colisão OU ele sair da tela
             DrawTexture(powerup_atual.textura_powerup, posicao_x_powerup, powerup_atual.posy, WHITE);
         }
 
 
         // pontuação display
-        DrawText(TextFormat("PONTOS: %d", pontuacao), 10, 40, 20, BLACK);
+        DrawText(TextFormat("PONTOS: %d", pontuacao), 10, 40, 20, BLACK); // Mostra a pontuação no canto superior esquerdo
 
 
 
         //O que ocrre ao não colidir
         if (colidiu == false) {
-            frame_contador_pontuacao++;
+            frame_contador_pontuacao++; 
             if (frame_contador_pontuacao >= 60) {
-                pontuacao++;
+                pontuacao++; // a cada 60 frame_contador_pontuacao que passa a pntuação aumenta em 1 até ocorrer a colisão
                 frame_contador_pontuacao = 0;
             }
         }
         //             // O que ocorre ao colidir
-        if (colidiu == true && invencibilidade == false) {
+        if (colidiu == true && invencibilidade == false) { // só fecha a tela se a invencibilidade for falsa e não ocorreu nenhuma colisão
             DrawText("COLISAO!", 10, 10, 20, RED);
             salvarHighScore(pontuacao);
             EndDrawing();
@@ -415,23 +416,23 @@ int main(void)
 
 
 
-        if (ColidiuPowerup == true && powerup_visivel == true) {
-            if (powerup_atual.id == 0) {
+        if (ColidiuPowerup == true && powerup_visivel == true) { // spwana o power up dependendo da id escolhida aleatoriamente
+            if (powerup_atual.id == 0) { // power up que aumenta a pontuação por 5
                 pontuacao += 5;
 
             }
-            else if (powerup_atual.id == 1) {
-                frame_contador_caracol = 360;
+            else if (powerup_atual.id == 1) { // power up de lentidão
+                frame_contador_caracol = 360; // duração de 6 segundos
             }
-            else if (powerup_atual.id == 2) {
-                frame_contador_invencibilidade = 360;
+            else if (powerup_atual.id == 2) { // power up de invencibilidade
+                frame_contador_invencibilidade = 360; // duração de 6 segundos
             }
-            else if (powerup_atual.id == 3) {
-                frame_contador_fogo = 360;
+            else if (powerup_atual.id == 3) { // power up de aumentar a velocidade
+                frame_contador_fogo = 360; // duração de 6 segundos
             }
 
-            powerup_visivel = false;
-            frame_powerup_spawn = 0;
+            powerup_visivel = false; // despawna o power up quando ocorrer a colisão com o jogador
+            frame_powerup_spawn = 0; // reseta a contagem do tempo de duração
         }
 
 
