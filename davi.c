@@ -37,19 +37,19 @@ powerups powerup_atual;
 int lerarquivo() {
     int highScore;
     FILE* arquivo = fopen("high_score.txt", "r");
-    
+
     if (arquivo != NULL) {
         fscanf(arquivo, "%d", &highScore);
         fclose(arquivo);
     }
-    
+
     return highScore;
 }
 
 // Função para salvar um novo high score
 void salvarHighScore(int score) {
     int highScore = lerarquivo();
-    
+
     // Se o novo score for maior, salva
     if (score > highScore) {
         FILE* arquivo = fopen("high_score.txt", "w");
@@ -69,16 +69,14 @@ int main(void)
     int posicao_x_rect = 798;
     int numero = 0;
     int contador = 0;
-    int contador_frames = 0; 
+    int contador_frames = 0;
     int contador_frames_passaro = 0;
-    int posicao_y_estrela = 50;
-    int posicao_x_estrela = 798;
 
     int pontuacao = 0;
     int frame_contador_pontuacao = 0;
 
     int frame_contador_gelo = 0;
-    int posicao_x_powerup;
+    int posicao_x_powerup=0;
     bool powerup_visivel = false;  // powerup começa sem ta visivel
     int frame_powerup_spawn = 0;   // contagem em frames do powerup
 
@@ -90,8 +88,8 @@ int main(void)
     int quadrado_y = 330;
     int quadrado_size = 50;
     int contador_frames_pulo = 0;
-    int valor_decrescimo_pulo = 2;
-    int pode_pular = 1;
+    float valor_decrescimo_pulo = 2.5;
+    bool pode_pular = true;
 
     int cenario_1_x = 0;
     int cenario_2_x = 800;
@@ -99,8 +97,10 @@ int main(void)
     dificuldade* dificuldade_1 = malloc(sizeof(dificuldade));
     dificuldade* dificuldade_2 = malloc(sizeof(dificuldade));
     dificuldade* dificuldade_3 = malloc(sizeof(dificuldade));
+    dificuldade* dificuldade_4 = malloc(sizeof(dificuldade));
+    dificuldade* dificuldade_5 = malloc(sizeof(dificuldade));
 
-    if (dificuldade_1 == NULL || dificuldade_2 == NULL || dificuldade_3 == NULL) {
+    if (dificuldade_1 == NULL || dificuldade_2 == NULL || dificuldade_3 == NULL || dificuldade_4==NULL || dificuldade_5==NULL) {
         InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -117,7 +117,7 @@ int main(void)
     inimigo_1.largura = 80;
     inimigo_1.id = 0;
 
-    inimigo_2.posy = 150;
+    inimigo_2.posy = 300;
     inimigo_2.altura = 20;
     inimigo_2.largura = 50;
     inimigo_2.id = 1;
@@ -127,31 +127,45 @@ int main(void)
     inimigo_3.largura = 40;
     inimigo_3.id = 2;
 
-    dificuldade_1->qtd_decrescimo = 2;
-    dificuldade_1->max_loops = 3;
+    dificuldade_1->qtd_decrescimo = 3;
+    dificuldade_1->max_loops = 2;
     dificuldade_1->tempo_spawn = -400;
     dificuldade_1->proximo = dificuldade_2;
 
-    dificuldade_2->qtd_decrescimo = 6;
+    dificuldade_2->qtd_decrescimo = 5;
     dificuldade_2->max_loops = 8;
     dificuldade_2->tempo_spawn = -300;
     dificuldade_2->proximo = dificuldade_3;
 
-    dificuldade_3->qtd_decrescimo = 20;
-    dificuldade_3->max_loops = 500;
+    dificuldade_3->qtd_decrescimo = 8;
+    dificuldade_3->max_loops = 20;
     dificuldade_3->tempo_spawn = -200;
-    dificuldade_3->proximo = NULL;
+    dificuldade_3->proximo = dificuldade_4;
+
+    dificuldade_4->qtd_decrescimo = 10;
+    dificuldade_4->max_loops = 30;
+    dificuldade_4->tempo_spawn = -200;
+    dificuldade_4->proximo = dificuldade_5;
+
+    dificuldade_5->qtd_decrescimo = 15;
+    dificuldade_5->max_loops = 40;
+    dificuldade_5->tempo_spawn = -100;
+    dificuldade_5->proximo == NULL;
+    
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
     SetTargetFPS(60); // 60 frames por segundo
 
     dificuldade* atual = dificuldade_1;
-    Texture2D dinossauro = LoadTexture("resources/dinossauro_parado.png");
+    Texture2D dinossauro_parado = LoadTexture("resources/dinossauro_parado.png");
     Texture2D dinossauro_esq = LoadTexture("resources/dinossauro_em_pe_1.png");
     Texture2D dinossauro_dir = LoadTexture("resources/dinossauro_em_pe_2.png");
-    Texture2D atual_textura = dinossauro;
     Texture2D dinossauro_down_dir = LoadTexture("resources/dinossauro_deitado_2.png");
     Texture2D dinossauro_down_esq = LoadTexture("resources/dinossauro_deitado_1.png");
+
+    Texture2D textura_dino_atual = dinossauro_parado;
+
+
     Texture2D cenario_1 = LoadTexture("resources/cenario_1.png");
     Texture2D cenario_2 = LoadTexture("resources/cenario_1.png");
 
@@ -160,19 +174,19 @@ int main(void)
     Texture2D passaro_down = LoadTexture("resources/passaro1.png");
     Texture2D passaro_up = LoadTexture("resources/passaro2.png");
 
-    Texture2D powerup1 = LoadTexture("resources/5.png");
-    Texture2D powerup2 = LoadTexture("resources/gelo.png");
-    Texture2D powerup3 = LoadTexture("resources/caracol.png");
-    Texture2D powerup4 = LoadTexture("resources/quadrado.png");
+    Texture2D powerup0 = LoadTexture("resources/5.png");
+    Texture2D powerup1 = LoadTexture("resources/caracol.png");
+    Texture2D powerup2 = LoadTexture("resources/botafogo.png");
+    Texture2D powerup3 = LoadTexture("resources/fogo.png");
 
-    Texture2D powerups_texturas[4] = {powerup1, powerup2, powerup3, powerup4}; // aqui eu coloco os 4 powerups
+    Texture2D powerups_texturas[4] = { powerup0, powerup1, powerup2, powerup3 }; // aqui eu coloco os 4 powerups
 
     inimigo_1.textura_inimigo = cacto;
     inimigo_2.textura_inimigo = passaro_up;
     inimigo_3.textura_inimigo = big_cacto;
     inimigos inimigo_atual = inimigo_1;
 
-    
+
 
     // Textures já foram carregadas anteriormente (powerup1, powerup2, etc.)
 
@@ -201,16 +215,6 @@ int main(void)
         contador_frames++;
         contador_frames_passaro++;
         frame_powerup_spawn++;
-        
-        if (contador_frames <= 16) {
-            atual_textura = dinossauro_dir;
-        }
-        else if (contador_frames >= 16 && contador_frames <= 32) {
-            atual_textura = dinossauro_esq;
-        }
-        else {
-            contador_frames = 0;
-        }
 
         if (contador == atual->max_loops) {
             atual = atual->proximo;
@@ -233,58 +237,62 @@ int main(void)
         }
 
         if (inimigo_atual.id == 1) {
-            if (contador_frames_passaro<= 16) {
-                inimigo_atual.textura_inimigo= passaro_up;
+            if (contador_frames_passaro <= 16) {
+                inimigo_atual.textura_inimigo = passaro_up;
             }
-            else if (contador_frames_passaro>= 16 && contador_frames_passaro<= 32) {
-                inimigo_atual.textura_inimigo= passaro_down;
+            else if (contador_frames_passaro >= 16 && contador_frames_passaro <= 32) {
+                inimigo_atual.textura_inimigo = passaro_down;
             }
             else {
-                contador_frames_passaro= 0;
+                contador_frames_passaro = 0;
             }
         };
 
-        if (IsKeyDown(KEY_UP) && contador_frames_pulo < 10 && pode_pular == 1) {
+        if (IsKeyDown(KEY_UP) && contador_frames_pulo < 10 && pode_pular == true) {
             quadrado_y -= 20;
             contador_frames_pulo++;
+            textura_dino_atual = dinossauro_parado;
         }
-        if (IsKeyReleased(KEY_UP) || contador_frames_pulo == 10) { 
-            pode_pular = 0;
+        if (IsKeyReleased(KEY_UP) || contador_frames_pulo == 10) {
+            pode_pular = false;
         }
-        if (pode_pular == 0) {
+        if (pode_pular == false) {
             quadrado_y += valor_decrescimo_pulo;
             if (IsKeyUp(KEY_DOWN)) {
                 if (quadrado_y >= 330) {
-                    quadrado_y = 330;
+                    quadrado_y = 360;
                     contador_frames_pulo = 0;
-                    pode_pular = 1;
+                    pode_pular = true;
                 }
             }
         }
 
         // Abaixar
         if (IsKeyDown(KEY_DOWN) && contador_frames <= 16) {
-            atual_textura = dinossauro_down_dir;
-            quadrado_y = 330;
+            textura_dino_atual = dinossauro_down_dir;
+            quadrado_y = 360;
         }
         else if (IsKeyDown(KEY_DOWN) && contador_frames >= 16 && contador_frames <= 32) {
-            atual_textura = dinossauro_down_esq;
-            quadrado_y = 330;
+            textura_dino_atual = dinossauro_down_esq;
+            quadrado_y = 360;
         }
-        else if (contador_frames <= 16) {
-            atual_textura = dinossauro_dir;
+        else if (contador_frames <= 16 && quadrado_y == 330) {
+            textura_dino_atual = dinossauro_dir;
         }
-        else if (contador_frames >= 16 && contador_frames <= 32) {
-            atual_textura = dinossauro_esq;
+        else if (contador_frames >= 16 && contador_frames <= 32 && quadrado_y == 330) {
+            textura_dino_atual = dinossauro_esq;
         }
         else {
             contador_frames = 0;
         }
 
+        if (IsKeyReleased(KEY_DOWN)){
+            quadrado_y = 330;
+        }
 
-       // Logica do spawn do powerup
-        if  (frame_powerup_spawn >= 300 && !powerup_visivel) {
-            int m[2][2] = {{0, 1}, {2, 3}};
+        // Logica do spawn do powerup
+        if (frame_powerup_spawn >= 300 && powerup_visivel == false) {
+            int m[2][2] = { {0, 1}, {2, 3} };
             int linha = rand() % 2;
             int coluna = rand() % 2;
             int tipo = m[linha][coluna];  //so faz o sorteio uma vez,  todo o momento em que ele aprecer.
@@ -299,9 +307,9 @@ int main(void)
             powerup_visivel = true;
         }
 
-        
+
         // powerup vai diminuindo a cada frame 2 de x
-        if (powerup_visivel) {
+        if (powerup_visivel == true) {
             posicao_x_powerup -= 2;
             if (posicao_x_powerup < 0) {
                 powerup_visivel = false; // Esconde powerup após sair da tela
@@ -310,12 +318,13 @@ int main(void)
         }
 
         if (frame_contador_gelo > 0) {
-        posicao_x_rect -= 1;
-        frame_contador_gelo--; 
-        }  else if (frame_contador_fogo > 0) {
+            posicao_x_rect -= 1;
+            frame_contador_gelo--;
+        }
+        else if (frame_contador_fogo > 0) {
             posicao_x_rect -= atual->qtd_decrescimo + 2;
             frame_contador_fogo--;
-        } 
+        }
         else {
             posicao_x_rect -= atual->qtd_decrescimo;
         }
@@ -324,7 +333,8 @@ int main(void)
         if (frame_contador_invencibilidade > 0) {
             invencibilidade = true;
             frame_contador_invencibilidade--;
-        }  else  {
+        }
+        else {
             invencibilidade = false;
         }
 
@@ -339,8 +349,12 @@ int main(void)
         DrawTexture(cenario_1, cenario_1_x, 0, WHITE);
         DrawTexture(cenario_2, cenario_2_x, 0, WHITE);
 
-       Rectangle retangulo_dino = {quadrado_x, quadrado_y, (float)atual_textura.width, (float)atual_textura.height};
-        
+        Rectangle retangulo_dino = {
+            quadrado_x,
+            quadrado_y,
+            (float)textura_dino_atual.width,
+            (float)textura_dino_atual.height};
+
         Rectangle retangulo_inimigo = {
             posicao_x_rect,
             inimigo_atual.posy,
@@ -348,7 +362,7 @@ int main(void)
             (float)inimigo_atual.textura_inimigo.height
         };
 
-        
+
         Rectangle retangulo_powerup = {
             (float)posicao_x_powerup,
             (float)powerup_atual.posy,
@@ -363,34 +377,31 @@ int main(void)
 
         // desenhar os objetos
         DrawTexture(inimigo_atual.textura_inimigo, posicao_x_rect, inimigo_atual.posy, WHITE);
-        DrawTexture(atual_textura, quadrado_x, quadrado_y, WHITE);
-       
-        // Outlines
-        DrawRectangleLinesEx(retangulo_dino, 1, BLUE);
-        DrawRectangleLinesEx(retangulo_inimigo, 1, RED);
+        DrawTexture(textura_dino_atual, quadrado_x, quadrado_y, WHITE);
 
-        if (powerup_visivel) {
+        // Outlines
+        
+
+        if (powerup_visivel == true) {
             DrawTexture(powerup_atual.textura_powerup, posicao_x_powerup, powerup_atual.posy, WHITE);
-            DrawRectangleLinesEx(retangulo_powerup, 1, YELLOW);
         }
 
 
-        // Score display
+        // pontuação display
         DrawText(TextFormat("PONTOS: %d", pontuacao), 10, 40, 20, BLACK);
 
 
-        
+
         //O que ocrre ao não colidir
-        if (!colidiu) {
-        frame_contador_pontuacao++; 
+        if (colidiu == false) {
+            frame_contador_pontuacao++;
             if (frame_contador_pontuacao >= 60) {
-            pontuacao++;
-            frame_contador_pontuacao = 0;
+                pontuacao++;
+                frame_contador_pontuacao = 0;
             }
         }
-//             // O que ocorre ao colidir
-        if (colidiu && invencibilidade == false) {
-            DrawText("COLISAO!", 10, 10, 20, RED);
+        //             // O que ocorre ao colidir
+        if (colidiu == true && invencibilidade == false) {
             salvarHighScore(pontuacao);
             EndDrawing();
             WaitTime(1.0);
@@ -401,15 +412,16 @@ int main(void)
 
 
 
-        if (ColidiuPowerup && powerup_visivel) {
-            if (powerup_atual.id == 0){ 
+        if (ColidiuPowerup == true && powerup_visivel == true) {
+            if (powerup_atual.id == 0) {
                 pontuacao += 5;
+               
             }
             else if (powerup_atual.id == 1) {
-                frame_contador_gelo = 360; 
+                frame_contador_gelo = 360;
             }
             else if (powerup_atual.id == 2) {
-                frame_contador_invencibilidade = 660;
+                frame_contador_invencibilidade = 360;
             }
             else if (powerup_atual.id == 3) {
                 frame_contador_fogo = 360;
@@ -421,10 +433,10 @@ int main(void)
 
 
 
-       
+
         EndDrawing();
     }
     CloseWindow();
 
-return 0;
+    return 0;
 }
