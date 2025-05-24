@@ -260,7 +260,7 @@ int main(void)
             quadrado_y += valor_decrescimo_pulo;
             if (IsKeyUp(KEY_DOWN)) {
                 if (quadrado_y >= 330) {
-                    quadrado_y = 360;
+                    quadrado_y = 330;
                     contador_frames_pulo = 0;
                     pode_pular = true;
                 }
